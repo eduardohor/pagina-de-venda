@@ -21,7 +21,7 @@
                                                 <option value="{{ $customer->id }}">{{ $customer->id }} - {{ $customer->name }}</option>
                                             @endforeach
                                         </select>
-                                        <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
+                                        <button class="btn btn-secondary" type="button" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
                                             Cadastrar
                                         </button>
                                     </div>
@@ -48,27 +48,46 @@
                                                     <option value="{{ $product->id }}">{{ $product->name }} | R$ {{ number_format($product->price, 2, ',', '.') }}</option>
                                                 @endforeach
                                             </select>
-                                            <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                                            <button class="btn btn-secondary" type="button" data-bs-toggle="modal" data-bs-target="#addProductModal">
                                                 Cadastrar
                                             </button>
                                         </div>
                                     </div>
                                     <div class="col-sm-2">
-                                        <input type="number" class="form-control" name="" placeholder="Quantidade">
+                                        <input type="text" class="form-control quantity" name="quantity" placeholder="Quantidade">
                                     </div>
                                     <div class="col-sm-2">
-                                        <input type="text" class="form-control" name="" id="unitary_value" placeholder="Valor Unitário">
+                                        <input type="text" class="form-control" name="unitary_value" id="unitary_value" placeholder="Valor Unitário" readonly>
                                     </div>
                                     <div class="col-sm-2">
-                                        <input type="text" class="form-control" name="" placeholder="Subtotal" readonly>
+                                        <input type="text" class="form-control" name="subtotal" id="subtotal" placeholder="Subtotal" readonly>
                                     </div>
                                     <div class="col-sm-1">
-                                        <button type="button" class="btn btn-outline-primary">Adicionar</button>
+                                        <button type="button" class="btn btn-secondary" id="addItemBtn">Adicionar</button>
                                     </div>
                                 </div>
                             </div>
 
-                            <button type="submit" class="btn btn-primary mt-3">Salvar Venda</button>
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Item</th>
+                                        <th>Cód. Prod.</th>
+                                        <th>Nome</th>
+                                        <th>Quantidade</th>
+                                        <th>Valor Unitário</th>
+                                        <th>Subtotal</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="itemsTableBody">
+
+                                </tbody>
+                            </table>
+
+                            <h5 class="my-4 fs-5 fw-bold">Valor Total: <span id="totalValue"></span></h5>
+
+                            <button type="submit" class="btn btn-dark mt-3">Salvar Venda</button>
 
                         </form>
                 </div>
@@ -108,7 +127,7 @@
                                 <div class="text-danger">{{ $message }}</div>
                             @enderror
                         </div>
-                        <button type="submit" class="btn btn-primary">Cadastrar Cliente</button>
+                        <button type="submit" class="btn btn-secondary">Cadastrar Cliente</button>
                     </form>
                 </div>
             </div>
@@ -140,7 +159,7 @@
                                 <div class="text-danger">{{ $message }}</div>
                             @enderror
                         </div>
-                        <button type="submit" class="btn btn-primary">Cadastrar Produto</button>
+                        <button type="submit" class="btn btn-secondary">Cadastrar Produto</button>
                     </form>
                 </div>
             </div>
@@ -152,18 +171,21 @@
 
     <script>
         $(document).ready(function () {
-            //mask
+            //mascaras
             $('.cpf-mask').mask('000.000.000-00');
             $('#product_price').mask('000.000.000,00', { reverse: true });
-            $('#unitary_value').mask('000.000.000,00', { reverse: true });
+            $('#unitary_value').mask('000.000.000.00', { reverse: true });
 
+            $('.quantity').on('input', function() {
+                this.value = this.value.replace(/[^0-9]/g, '');
+            });
 
-            //mensage
+            //mensagem
             @if(session('success'))
                 toastr.success('{{ session('success') }}');
             @endif
 
-            //error
+            //erros
             @if(session('error-modal') === 'customer' && $errors->any())
                 $('#addCustomerModal').modal('show');
             @endif
@@ -174,7 +196,7 @@
 
         });
 
-        //customer
+        //clientes
 
         var customers = @json($customers);
 
@@ -192,7 +214,7 @@
             }
         });
 
-        //products
+        //produtos
 
         var products = @json($products);
 
@@ -201,14 +223,89 @@
             var product = products.find(c => c.id == productId);
 
             if (product) {
-                var formattedPrice = product.price.toLocaleString('pt-br', {minimumFractionDigits: 2});
-                $('#unitary_value').val(formattedPrice);
+                $('#unitary_value').val(product.price);
+                $('.quantity').val(1);
+                calculateSubtotal();
+
             }
         });
+
+        // Calcular subtotal
+        function calculateSubtotal() {
+            var quantity = $('.quantity').val();
+            var unitaryValue = parseFloat($('#unitary_value').val());
+
+            if (!isNaN(quantity) && !isNaN(unitaryValue)) {
+                var subtotal = quantity * unitaryValue;
+                $('#subtotal').val(subtotal.toFixed(2));
+            } else {
+                $('#subtotal').val('');
+            }
+        }
+
+
+        $('.quantity').on('input', calculateSubtotal);
+        $('#unitary_value').on('input', calculateSubtotal);
+
+
+        //Adicionar item
+        $('#addItemBtn').on('click', function () {
+            var productId = $('#productselect').val();
+            var productName = $('#productselect option:selected').text().split(' | ')[0];
+            var quantity = $('.quantity').val();
+            var unitaryValue = $('#unitary_value').val();
+            var subtotal = $('#subtotal').val()
+
+            if (isNaN(quantity) || isNaN(unitaryValue) || quantity <= 0 || unitaryValue <= 0) {
+                alert('Por favor, preencha a quantidade e o valor unitário corretamente.');
+                return;
+            }
+
+            var row = `<tr>
+                            <td>${$('#itemsTableBody tr').length + 1}</td>
+                            <td>${productId}</td>
+                            <td>${productName}</td>
+                            <td>${quantity}</td>
+                            <td>R$ ${unitaryValue}</td>
+                            <td>R$ ${subtotal}</td>
+                            <td>
+                                <button type="button" class="btn btn-danger btn-sm delete-item">Excluir</button>
+                            </td>
+                        </tr>`;
+
+            $('#itemsTableBody').append(row);
+
+            calculateTotalValue();
+
+            $('.quantity').val('');
+            $('#unitary_value').val('');
+            $('#subtotal').val('');
+            $('#productselect').prop('selectedIndex', 0);
+        });
+
+        //Remover Item
+        $('#itemsTableBody').on('click', '.delete-item', function () {
+            $(this).closest('tr').remove();
+            calculateTotalValue();
+        });
+
+        //Calcular valor total
+        function calculateTotalValue() {
+            var total = 0;
+
+            $('#itemsTableBody tr').each(function () {
+                var subtotal = parseFloat($(this).find('td:nth-child(6)').text().replace('R$ ', ''));
+                total += subtotal;
+            });
+
+            var formattedTotal = total.toFixed(2);
+
+            $('#totalValue').text('R$ ' + formattedTotal);
+        }
+
 
     </script>
 
     @endsection
-
 
 </x-app-layout>
