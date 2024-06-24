@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class SaleController extends Controller
 {
@@ -57,10 +58,12 @@ class SaleController extends Controller
             $user = Auth::user();
             $items = $request->items;
             $installments = $request->installments;
+            $customer_id = $request->customer_id ?: null;
+
 
             $dataSale = [
                 'user_id' => $user->id,
-                'customer_id' => $request->customer_id,
+                'customer_id' => $customer_id,
                 'total_amount' => $request->total_amount
             ];
 

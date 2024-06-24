@@ -32,7 +32,7 @@
                                         @forelse ($sales as $sale)
                                         <tr>
                                             <td>{{ $sale->id }}</td>
-                                            <td>{{ $sale->customer->name }}</td>
+                                            <td>{{ $sale->customer->name ?? '-'}}</td>
                                             <td>{{ $sale->created_at->format('d/m/Y H:i:s') }}</td>
                                             <td>{{ $sale->installments->first()->payment->method }}</td>
                                             <td>{{ $sale->user->name }}</td>

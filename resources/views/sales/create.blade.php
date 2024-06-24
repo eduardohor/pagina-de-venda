@@ -16,7 +16,7 @@
                                 <div class="col-sm-10">
                                     <div class="input-group">
                                         <select class="form-select" name="customer_id" id="customerSelect">
-                                            <option selected>Selecione um cliente</option>
+                                            <option selected value="">Selecione um cliente</option>
                                             @foreach ($customers as $customer)
                                                 <option value="{{ $customer->id }}">{{ $customer->id }} - {{ $customer->name }}</option>
                                             @endforeach
@@ -351,16 +351,13 @@
             $('#installmentsInputs').empty();
             $('#installmentsContainer').removeClass('d-none');
 
-            // Calcula o valor inicial de cada parcela
             var installmentValue = totalValue / installmentsCount;
 
-            // Inicializa data atual para preenchimento das datas das parcelas
             var currentDate = new Date();
             var currentDay = currentDate.getDate();
             var currentMonth = currentDate.getMonth() + 1;
             var currentYear = currentDate.getFullYear();
 
-                // Itera sobre o número de parcelas para criar os inputs das parcelas
                 for (var i = 0; i < installmentsCount; i++) {
                     var formattedDate = currentYear + '-' + ('0' + currentMonth).slice(-2) + '-' + ('0' + currentDay).slice(-2);
 
@@ -414,12 +411,12 @@
         $('#savePaymentBtn').on('click', function() {
 
             event.preventDefault();
-            // Reúne todos os dados necessários para salvar a venda
             var customer_id = $('#customerSelect').val();
             var items = [];
             var installments = [];
 
-            // Coleta os itens da venda
+            console.log(customer_id);
+
             $('#itemsTableBody tr').each(function() {
                 var productId = $(this).find('td:nth-child(2)').text();
                 var quantity = $(this).find('td:nth-child(4)').text();
@@ -434,7 +431,6 @@
                 });
             });
 
-            // Coleta as parcelas geradas
             $('.installment-date').each(function(index) {
                 var date = $(this).val();
                 var value = $(this).closest('.row').find('.installment-value').val().replace('R$ ', '').replace(',', '.');
@@ -465,7 +461,7 @@
                     toastr.success('Venda salva com sucesso!');
 
                     setTimeout(function() {
-                        window.location.href = '{{ route('sales.store') }}';
+                        window.location.href = '{{ route('sales.index') }}';
                     }, 2000);
                 },
                 error: function(xhr, status, error) {
