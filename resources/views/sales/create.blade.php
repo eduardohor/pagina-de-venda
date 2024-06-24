@@ -105,7 +105,7 @@
 
                             <h5 class="my-4 fs-5 fw-bold">Valor Total: <span id="totalValue"></span></h5>
 
-                            <button type="submit" class="btn btn-dark mt-3" disabled>Salvar Venda</button>
+                            <button class="btn btn-dark mt-3" id="savePaymentBtn" disabled>Salvar Venda</button>
 
                         </form>
                 </div>
@@ -360,64 +360,120 @@
             var currentMonth = currentDate.getMonth() + 1;
             var currentYear = currentDate.getFullYear();
 
-            // Itera sobre o número de parcelas para criar os inputs das parcelas
-            for (var i = 0; i < installmentsCount; i++) {
-                var formattedDate = currentYear + '-' + ('0' + currentMonth).slice(-2) + '-' + ('0' + currentDay).slice(-2);
+                // Itera sobre o número de parcelas para criar os inputs das parcelas
+                for (var i = 0; i < installmentsCount; i++) {
+                    var formattedDate = currentYear + '-' + ('0' + currentMonth).slice(-2) + '-' + ('0' + currentDay).slice(-2);
 
-                var input = `
-                    <div class="row mb-3">
-                        <div class="col-sm-2">
-                            <label class="form-label">Parcela ${i + 1}</label>
-                            <input type="date" class="form-control installment-date" value="${formattedDate}">
+                    var input = `
+                        <div class="row mb-3">
+                            <div class="col-sm-2">
+                                <label class="form-label">Parcela ${i + 1}</label>
+                                <input type="date" class="form-control installment-date" value="${formattedDate}">
+                            </div>
+                            <div class="col-sm-3">
+                                <label class="form-label">Valor</label>
+                                <input type="text" class="form-control installment-value" value="R$ ${installmentValue.toFixed(2).replace('.', ',')}">
+                            </div>
+                             <div class="col-sm-5">
+                                <label class="form-label">Forma de Pagamento</label>
+                                <select class="form-select installment-payment-method" name="" id="">
+                                    @foreach ($payments as $payment)
+                                        <option value="{{ $payment->id }}">{{ $payment->method }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
                         </div>
-                        <div class="col-sm-3">
-                            <label class="form-label">Valor</label>
-                            <input type="text" class="form-control installment-value" value="R$ ${installmentValue.toFixed(2).replace('.', ',')}">
-                        </div>
-                        <div class="col-sm-5">
-                            <label class="form-label">Forma de Pagamento</label>
-                            <select class="form-select installment-payment-method" name="payment_method_${i}" id="payment_method_${i}">
-                                <option value="Dinheiro">Dinheiro</option>
-                                <option value="Cartão de Crédito">Cartão de Crédito</option>
-                            </select>
-                        </div>
-                    </div>
-                `;
+                    `;
 
-                currentMonth++;
+                    currentMonth++;
 
-                $('#installmentsInputs').append(input);
-            }
+                    $('#installmentsInputs').append(input);
+                }
 
-            // Adiciona evento de input para recalcular as parcelas ao alterar valor de uma parcela
-            $('#installmentsInputs').on('input', '.installment-value', function () {
-                var editedIndex = $(this).closest('.row').index(); // Índice da parcela editada
-                var editedValue = parseFloat($(this).val().replace('R$ ', '').replace(',', '.')) || 0; // Valor da parcela editada
-                var currentTotal = 0;
 
-                // Calcula o valor total das demais parcelas já preenchidas
-                $('#installmentsInputs').find('.installment-value').not(this).each(function () {
-                    var value = parseFloat($(this).val().replace('R$ ', '').replace(',', '.')) || 0;
-                    currentTotal += value;
-                });
 
-                // Calcula o novo valor para distribuir entre as demais parcelas
-                var remainingValue = totalValue - editedValue; // Valor restante após a edição da parcela
-                var numInstallments = installmentsCount; // Número total de parcelas
+            var allFilled = true;
 
-                // Distribui o valor restante igualmente entre as demais parcelas
-                var newInstallmentValue = remainingValue / (numInstallments - 1);
+            $('#installmentsInputs .row').each(function() {
+                var dateInput = $(this).find('.installment-date');
+                var valueInput = $(this).find('.installment-value');
 
-                // Atualiza os valores das demais parcelas
-                $('#installmentsInputs').find('.installment-value').not(this).each(function (index) {
-                    var newValue = (index == editedIndex) ? editedValue : newInstallmentValue;
-                    $(this).val('R$ ' + newValue.toFixed(2).replace('.', ','));
-                });
+                if (!dateInput.val() || !valueInput.val()) {
+                    allFilled = false;
+                    return false;
+                }
             });
+
+            if (allFilled) {
+                $('#savePaymentBtn').prop('disabled', false);
+            } else {
+                $('#savePaymentBtn').prop('disabled', true);
+            }
         });
 
+        $('#savePaymentBtn').on('click', function() {
 
+            event.preventDefault();
+            // Reúne todos os dados necessários para salvar a venda
+            var customer_id = $('#customerSelect').val();
+            var items = [];
+            var installments = [];
 
+            // Coleta os itens da venda
+            $('#itemsTableBody tr').each(function() {
+                var productId = $(this).find('td:nth-child(2)').text();
+                var quantity = $(this).find('td:nth-child(4)').text();
+                var unitaryValue = $(this).find('td:nth-child(5)').text().replace('R$ ', '').replace(',', '.');
+                var subtotal = $(this).find('td:nth-child(6)').text().replace('R$ ', '').replace(',', '.');
+
+                items.push({
+                    product_id: productId,
+                    quantity: quantity,
+                    price: unitaryValue,
+                    subtotal: subtotal
+                });
+            });
+
+            // Coleta as parcelas geradas
+            $('.installment-date').each(function(index) {
+                var date = $(this).val();
+                var value = $(this).closest('.row').find('.installment-value').val().replace('R$ ', '').replace(',', '.');
+
+                installments.push({
+                    installment_number: index + 1,
+                    due_date: date,
+                    amount: value,
+                    payment_id: $(this).closest('.row').find('.installment-payment-method').val()
+                });
+            });
+
+            var saleData = {
+                _token: '{{ csrf_token() }}',
+                customer_id: customer_id,
+                items: items,
+                installments: installments,
+                total_amount: parseFloat($('#totalValue').text().replace('R$ ', '').replace(',', '.'))
+            };
+
+            $.ajax({
+                url: '{{ route('sales.store') }}',
+                type: 'POST',
+                dataType: 'json',
+                contentType: 'application/json',
+                data: JSON.stringify(saleData),
+                success: function(response) {
+                    toastr.success('Venda salva com sucesso!');
+
+                    setTimeout(function() {
+                        window.location.href = '{{ route('sales.store') }}';
+                    }, 2000);
+                },
+                error: function(xhr, status, error) {
+                    console.error('Erro ao salvar venda:', error);
+                    alert('Ocorreu um erro ao salvar a venda. Por favor, tente novamente.');
+                }
+            });
+        });
     </script>
 
     @endsection

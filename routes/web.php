@@ -20,6 +20,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::get('/sales' , [SaleController::class, 'create'])->name('sales.create');
+    Route::post('/sales' , [SaleController::class, 'store'])->name('sales.store');
 
     Route::post('/customer', [CustomerController::class, 'store'])->name('customer.store');
 
