@@ -1,14 +1,13 @@
+# 📝 DESAFIO PAGINA DE VENDA
 
-# Setup Docker Laravel 11 com PHP 8.3
-[Assine a Academy, e Seja VIP!](https://academy.especializati.com.br)
 
 ### Passo a passo
 Clone Repositório
 ```sh
-git clone https://github.com/eduardohor/paginda-de-venda.git
+git clone https://github.com/eduardohor/pagina-de-venda.git
 ```
 ```sh
-cd app-laravel
+cd pagina-de-venda
 ```
 
 Suba os containers do projeto
@@ -38,10 +37,31 @@ Gere a key do projeto Laravel
 php artisan key:generate
 ```
 
+Edite o arquivo .env com as informações do seu banco de dados local. Exemplo de configuração:
+- DB_CONNECTION=mysql
+- DB_HOST=db
+- DB_PORT=3306
+- DB_DATABASE=laravel
+- DB_USERNAME=username
+- DB_PASSWORD=userpass
+
 Rodar as migrations
 ```sh
-php artisan migrate
+php artisan migrate --seed
 ```
 
-Acesse o projeto
+Instalar dependências para o front 
+```sh
+npm install
+```
+
+Para rodar o front no docker
+```sh
+npm run build
+```
+
+Acesse o projeto e cadastre seu usuario em /register
+
 [http://localhost:8000](http://localhost:8000)
+
+Acesse o phpmyadmin em: http://localhost:8080
