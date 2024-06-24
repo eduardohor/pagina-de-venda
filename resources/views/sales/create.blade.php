@@ -85,9 +85,27 @@
                                 </tbody>
                             </table>
 
+                            <h4 class="fs-4 fw-bold mt-5 mb-3">Pagamento</h4>
+                            <div class="row mb-3">
+                                <label for="installments" class="mb-1">Quantidade de Parcelas</label>
+                                <div class="col-sm-5">
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="installmentsCount">
+                                        <button class="btn btn-secondary" type="button" id="generateInstallmentsBtn">
+                                            Gerar Parcelas
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div id="installmentsContainer" class="d-none">
+                                <h5 class="fs-5 fw-bold mt-5 mb-3">Parcelas Geradas</h5>
+                                <div id="installmentsInputs"></div>
+                            </div>
+
                             <h5 class="my-4 fs-5 fw-bold">Valor Total: <span id="totalValue"></span></h5>
 
-                            <button type="submit" class="btn btn-dark mt-3">Salvar Venda</button>
+                            <button type="submit" class="btn btn-dark mt-3" disabled>Salvar Venda</button>
 
                         </form>
                 </div>
@@ -175,6 +193,9 @@
             $('.cpf-mask').mask('000.000.000-00');
             $('#product_price').mask('000.000.000,00', { reverse: true });
             $('#unitary_value').mask('000.000.000.00', { reverse: true });
+            $('#installmentsInputs').on('input', 'input[type=text]', function () {
+                $(this).mask('###.##0.00', { reverse: true });
+            });
 
             $('.quantity').on('input', function() {
                 this.value = this.value.replace(/[^0-9]/g, '');
@@ -281,12 +302,14 @@
             $('#unitary_value').val('');
             $('#subtotal').val('');
             $('#productselect').prop('selectedIndex', 0);
+            resetInstallments();
         });
 
         //Remover Item
         $('#itemsTableBody').on('click', '.delete-item', function () {
             $(this).closest('tr').remove();
             calculateTotalValue();
+            resetInstallments();
         });
 
         //Calcular valor total
@@ -302,6 +325,97 @@
 
             $('#totalValue').text('R$ ' + formattedTotal);
         }
+
+
+        // Resetar Parcelas
+        function resetInstallments() {
+            $('#installmentsInputs').empty();
+            $('#installmentsContainer').addClass('d-none');
+        }
+
+
+        $('#generateInstallmentsBtn').on('click', function() {
+            var installmentsCount = $('#installmentsCount').val();
+            var totalValue = parseFloat($('#totalValue').text().replace('R$ ', '').replace(',', '.'));
+
+            if (installmentsCount <= 0) {
+                alert('A quantidade de parcelas deve ser maior que zero.');
+                return;
+            }
+
+            if (totalValue <= 0 || isNaN(totalValue)) {
+                alert('Adicione itens na venda.');
+                return;
+            }
+
+            $('#installmentsInputs').empty();
+            $('#installmentsContainer').removeClass('d-none');
+
+            // Calcula o valor inicial de cada parcela
+            var installmentValue = totalValue / installmentsCount;
+
+            // Inicializa data atual para preenchimento das datas das parcelas
+            var currentDate = new Date();
+            var currentDay = currentDate.getDate();
+            var currentMonth = currentDate.getMonth() + 1;
+            var currentYear = currentDate.getFullYear();
+
+            // Itera sobre o número de parcelas para criar os inputs das parcelas
+            for (var i = 0; i < installmentsCount; i++) {
+                var formattedDate = currentYear + '-' + ('0' + currentMonth).slice(-2) + '-' + ('0' + currentDay).slice(-2);
+
+                var input = `
+                    <div class="row mb-3">
+                        <div class="col-sm-2">
+                            <label class="form-label">Parcela ${i + 1}</label>
+                            <input type="date" class="form-control installment-date" value="${formattedDate}">
+                        </div>
+                        <div class="col-sm-3">
+                            <label class="form-label">Valor</label>
+                            <input type="text" class="form-control installment-value" value="R$ ${installmentValue.toFixed(2).replace('.', ',')}">
+                        </div>
+                        <div class="col-sm-5">
+                            <label class="form-label">Forma de Pagamento</label>
+                            <select class="form-select installment-payment-method" name="payment_method_${i}" id="payment_method_${i}">
+                                <option value="Dinheiro">Dinheiro</option>
+                                <option value="Cartão de Crédito">Cartão de Crédito</option>
+                            </select>
+                        </div>
+                    </div>
+                `;
+
+                currentMonth++;
+
+                $('#installmentsInputs').append(input);
+            }
+
+            // Adiciona evento de input para recalcular as parcelas ao alterar valor de uma parcela
+            $('#installmentsInputs').on('input', '.installment-value', function () {
+                var editedIndex = $(this).closest('.row').index(); // Índice da parcela editada
+                var editedValue = parseFloat($(this).val().replace('R$ ', '').replace(',', '.')) || 0; // Valor da parcela editada
+                var currentTotal = 0;
+
+                // Calcula o valor total das demais parcelas já preenchidas
+                $('#installmentsInputs').find('.installment-value').not(this).each(function () {
+                    var value = parseFloat($(this).val().replace('R$ ', '').replace(',', '.')) || 0;
+                    currentTotal += value;
+                });
+
+                // Calcula o novo valor para distribuir entre as demais parcelas
+                var remainingValue = totalValue - editedValue; // Valor restante após a edição da parcela
+                var numInstallments = installmentsCount; // Número total de parcelas
+
+                // Distribui o valor restante igualmente entre as demais parcelas
+                var newInstallmentValue = remainingValue / (numInstallments - 1);
+
+                // Atualiza os valores das demais parcelas
+                $('#installmentsInputs').find('.installment-value').not(this).each(function (index) {
+                    var newValue = (index == editedIndex) ? editedValue : newInstallmentValue;
+                    $(this).val('R$ ' + newValue.toFixed(2).replace('.', ','));
+                });
+            });
+        });
+
 
 
     </script>
