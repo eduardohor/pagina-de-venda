@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CustomerRequest;
 use App\Models\Customer;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class CustomerController extends Controller
@@ -15,7 +16,7 @@ class CustomerController extends Controller
         $this->customer = $customer;
     }
 
-    public function store(CustomerRequest $request)
+    public function store(CustomerRequest $request): RedirectResponse
     {
         $cpf = preg_replace('/\D/', '', $request->cpf);
 

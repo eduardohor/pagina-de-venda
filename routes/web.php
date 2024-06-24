@@ -21,6 +21,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/sales' , [SaleController::class, 'create'])->name('sales.create');
 
     Route::post('/customer', [CustomerController::class, 'store'])->name('customer.store');
+    Route::get('/customer', [CustomerController::class, 'index'])->name('customer.index');
 });
 
 require __DIR__.'/auth.php';

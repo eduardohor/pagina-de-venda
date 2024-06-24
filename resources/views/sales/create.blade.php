@@ -14,10 +14,11 @@
                                 <label for="customer" class="mb-1">Cliente</label>
                                 <div class="col-sm-10">
                                     <div class="input-group">
-                                        <select class="form-select" name="">
+                                        <select class="form-select" name="customer_id">
                                             <option selected>Selecione um cliente</option>
-                                            <option value="1">Cliente 1</option>
-                                            <option value="2">Cliente 2</option>
+                                            @foreach ($customers as $customer)
+                                                <option value="{{ $customer->id }}">{{ $customer->id }} - {{ $customer->name }}</option>
+                                            @endforeach
                                         </select>
                                         <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#addCustomerModal">
                                             Adicionar
