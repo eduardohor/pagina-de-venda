@@ -17,4 +17,12 @@ class Installment extends Model
         'amount'
     ];
 
+    public function sale() {
+        return $this->belongsTo(Sale::class);
+    }
+
+    public function payment() {
+        return $this->belongsTo(Payment::class);
+    }
+
 }

@@ -15,4 +15,20 @@ class Sale extends Model
         'total_amount'
     ];
 
+    public function items() {
+        return $this->hasMany(SaleItem::class);
+    }
+
+    public function user() {
+        return $this->belongsTo(User::class);
+    }
+
+    public function customer() {
+        return $this->belongsTo(Customer::class);
+    }
+
+    public function installments() {
+        return $this->hasMany(Installment::class);
+    }
+
 }

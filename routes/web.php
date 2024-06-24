@@ -19,8 +19,9 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    Route::get('/sales' , [SaleController::class, 'create'])->name('sales.create');
+    Route::get('/sales-create' , [SaleController::class, 'create'])->name('sales.create');
     Route::post('/sales' , [SaleController::class, 'store'])->name('sales.store');
+    Route::get('/sales' , [SaleController::class, 'index'])->name('sales.index');
 
     Route::post('/customer', [CustomerController::class, 'store'])->name('customer.store');
 

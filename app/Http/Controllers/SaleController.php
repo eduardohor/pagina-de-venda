@@ -9,6 +9,7 @@ use App\Models\Product;
 use App\Models\Sale;
 use App\Models\SaleItem;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -32,6 +33,14 @@ class SaleController extends Controller
         $this->saleItem = $saleItem;
     }
 
+    public function index()
+    {
+        $sales = $this->sale->orderByDesc('created_at')->paginate(10);
+
+        return view('sales.index', compact('sales'));
+
+    }
+
     public function create(): View
     {
         $customers = $this->customer->all();
@@ -41,7 +50,7 @@ class SaleController extends Controller
         return view('sales.create', compact('customers', 'products', 'payments'));
     }
 
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
         DB::beginTransaction();
         try {

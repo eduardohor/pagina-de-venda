@@ -19,6 +19,12 @@
 
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
                     <x-nav-link :href="route('sales.create')" :active="request()->routeIs('sales.create')">
+                        {{ __('Nova venda') }}
+                    </x-nav-link>
+                </div>
+
+                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                    <x-nav-link :href="route('sales.index')" :active="request()->routeIs('sales.index')">
                         {{ __('Vendas') }}
                     </x-nav-link>
                 </div>
