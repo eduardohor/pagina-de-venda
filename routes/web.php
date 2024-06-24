@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SaleController;
 use Illuminate\Support\Facades\Route;
@@ -21,7 +22,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/sales' , [SaleController::class, 'create'])->name('sales.create');
 
     Route::post('/customer', [CustomerController::class, 'store'])->name('customer.store');
-    Route::get('/customer', [CustomerController::class, 'index'])->name('customer.index');
+
+    Route::post('/product', [ProductController::class, 'store'])->name('product.store');
 });
 
 require __DIR__.'/auth.php';
