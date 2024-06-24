@@ -369,7 +369,7 @@
                             </div>
                             <div class="col-sm-3">
                                 <label class="form-label">Valor</label>
-                                <input type="text" class="form-control installment-value" value="R$ ${installmentValue.toFixed(2).replace('.', ',')}">
+                                <input type="text" class="form-control installment-value" value="R$ ${installmentValue.toFixed(2).replace('.', ',')}" readonly>
                             </div>
                              <div class="col-sm-5">
                                 <label class="form-label">Forma de Pagamento</label>
