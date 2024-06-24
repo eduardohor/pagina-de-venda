@@ -38,7 +38,11 @@
                                             <td>{{ $sale->user->name }}</td>
                                             <td>R$ {{ number_format($sale->total_amount, 2, ',', '.') }}</td>
                                             <td>
-                                                <button type="button" class="btn btn-danger btn-sm delete-item">Excluir</button>
+                                                <form action="{{ route('sales.destroy', $sale->id) }}" method="post">
+                                                    @method('DELETE')
+                                                    @csrf
+                                                    <button type="submit" class="btn btn-danger btn-sm delete-item">Excluir</button>
+                                                </form>
                                             </td>
                                         </tr>
                                         @empty
@@ -60,4 +64,17 @@
             </div>
         </div>
     </div>
+
+    @section('script')
+        <script>
+            //mensagens
+            @if(session('success'))
+                toastr.success('{{ session('success') }}');
+            @endif
+
+            @if(session('error'))
+                toastr.error('{{ session('error') }}');
+            @endif
+        </script>
+    @endsection
 </x-app-layout>

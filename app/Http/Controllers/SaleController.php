@@ -98,5 +98,18 @@ class SaleController extends Controller
         }
 
     }
+
+    public function destroy($id)
+    {
+        $sale = $this->sale->find($id);
+
+        if (!$sale) {
+            return redirect()->route('sales.index')->with('error', 'Venda não encontrada!');
+        }
+
+        $sale->delete();
+
+        return redirect()->route('sales.index')->with('success', 'Venda excluida com sucesso!');
+    }
 }
 

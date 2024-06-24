@@ -22,6 +22,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/sales-create' , [SaleController::class, 'create'])->name('sales.create');
     Route::post('/sales' , [SaleController::class, 'store'])->name('sales.store');
     Route::get('/sales' , [SaleController::class, 'index'])->name('sales.index');
+    Route::delete('/sales/{id}' , [SaleController::class, 'destroy'])->name('sales.destroy');
 
     Route::post('/customer', [CustomerController::class, 'store'])->name('customer.store');
 
